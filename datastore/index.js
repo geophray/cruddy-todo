@@ -90,15 +90,56 @@ exports.readOne = (id, callback) => {
 
 exports.update = (id, text, callback) => {
 
-  fs.writeFile(path.join(exports.dataDir, `${id}.txt`), text, function (err, todo) {
+  // fs.writeFile(path.join(exports.dataDir, `${id}.txt`), text, function (err) {
+
+  //   if (err) {
+  //     callback(err);
+
+  //   } else {
+  //     callback(null, { id: id, text: text });
+  //   }
+
+  // });
+
+  fs.readFile(path.join(exports.dataDir, `${id}.txt`), (err) => {
+
     if (err) {
       callback(err);
-
     } else {
-      callback(null, { id: id, text: text });
+      fs.writeFile(path.join(exports.dataDir, `${id}.txt`), text, function (err) {
+        if (err) {
+          callback(err);
+        } else {
+          callback(null, { id: id, text: text });
+        }
+      });
     }
-
   });
+
+
+
+  // var fileExists = fs.existsSync(exports.dataDir, `${id}.txt`);
+  // var fileExists = path.exists(exports.dataDir, `${id}.txt`);
+  // var fileExists = false || path.isfile(exports.dataDir, `${id}.txt`);
+
+
+  // var item = items[id];
+  // if (!item) {
+  //   callback(new Error(`No item with id: ${id}`));
+  // } else {
+  //   items[id] = text;
+  //   callback(null, { id, text });
+  // }
+
+
+
+
+
+
+
+
+
+
 
   // var item = items[id];
   // if (!item) {
