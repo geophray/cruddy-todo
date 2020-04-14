@@ -12,20 +12,16 @@ exports.create = (text, callback) => {
   // items[id] = text;
   // callback(null, { id, text });
 
-
-
   counter.getNextUniqueId(function (err, counterString) {
     if (err) {
       callback(err);
     } else {
-
       // items[counterString] = text;
-      callback(null, { counterString, text });
-
-      fs.writeFile(`datastore/data/${counterString}.txt`, text, (err) => {
-
+      fs.writeFile(path.join(exports.dataDir, `${counterString}.txt`), text, (err) => {
         if (err) {
           throw err;
+        } else {
+          callback(null, { id: counterString, text: text });
         }
       });
     }
@@ -35,14 +31,34 @@ exports.create = (text, callback) => {
 
 exports.readAll = (callback) => {
 
-  fs.readdir('./datastore/data', (err, data) => {
+  fs.readdir(path.join(exports.dataDir), (err, data) => {
 
     if (err) {
       throw err;
     }
+
+
     data = data.map((todo) => todo.split('.')[0]);
-    data = data.map((todo) => { return {id: todo, text: todo}; });
-    console.log(data);
+    // data = data.map((todo) => { return {id: todo, text: todo}; });
+
+    var todoList = [];
+
+
+    for (var id of data) {
+
+
+      fs.readFile(path.join(exports.dataDir, `${id}.txt`), (err, data) => {
+        if (err) {
+          callback(err);
+
+        } else {
+
+          todoList.push({id: id, text: data.toString()});
+        }
+      });
+
+    }
+
     callback(null, data);
   });
 
@@ -55,9 +71,9 @@ exports.readAll = (callback) => {
 
 exports.readOne = (id, callback) => {
 
-  fs.readFile(`./datastore/data/${id}.txt`, (err, data) => {
+  fs.readFile(path.join(exports.dataDir, `${id}.txt`), (err, data) => {
     if (err) {
-
+      callback(err);
     } else {
       callback(null, { id: id, text: data.toString() });
     }
@@ -74,8 +90,9 @@ exports.readOne = (id, callback) => {
 
 exports.update = (id, text, callback) => {
 
-  fs.writeFile(`./datastore/data/${id}.txt`, text, function (err, todo) {
+  fs.writeFile(path.join(exports.dataDir, `${id}.txt`), text, function (err, todo) {
     if (err) {
+      callback(err);
 
     } else {
       callback(null, { id: id, text: text });
@@ -95,7 +112,7 @@ exports.update = (id, text, callback) => {
 
 exports.delete = (id, callback) => {
 
-  fs.unlink(`./datastore/data/${id}.txt`, function (err) {
+  fs.unlink(path.join(exports.dataDir, `${id}.txt`), function (err) {
     if (err) {
       callback(new Error(`No item with id: ${id}`));
     } else {
