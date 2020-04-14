@@ -49,7 +49,7 @@ exports.getNextUniqueId = (cb) => {
       cb(err);
     } else {
       counter = number + 1;
-      console.log(counter);
+      // console.log(counter);
 
       writeCounter(counter, function (err, counterString) {
         if (err) {

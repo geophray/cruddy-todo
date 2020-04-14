@@ -71,6 +71,8 @@ describe('todos', () => {
       todos.create('todo1', (err, data) => {
         const todoCount = fs.readdirSync(todos.dataDir).length;
         expect(todoCount).to.equal(1);
+        console.log('todo count: ', todoCount);
+
         todos.create('todo2', (err, data) => {
           expect(fs.readdirSync(todos.dataDir)).to.have.lengthOf(2);
           done();
