@@ -2,6 +2,9 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
+const Promise = require('bluebird');
+
+const readFileAsync = Promise.promisify(fs.readFile);
 
 var items = {};
 
@@ -12,16 +15,16 @@ exports.create = (text, callback) => {
   // items[id] = text;
   // callback(null, { id, text });
 
-  counter.getNextUniqueId(function (err, counterString) {
+  counter.getNextUniqueId(function (err, id) {
     if (err) {
       callback(err);
     } else {
       // items[counterString] = text;
-      fs.writeFile(path.join(exports.dataDir, `${counterString}.txt`), text, (err) => {
+      fs.writeFile(path.join(exports.dataDir, `${id}.txt`), text, (err) => {
         if (err) {
           throw err;
         } else {
-          callback(null, { id: counterString, text: text });
+          callback(null, { id, text });
         }
       });
     }
@@ -31,42 +34,30 @@ exports.create = (text, callback) => {
 
 exports.readAll = (callback) => {
 
-  fs.readdir(path.join(exports.dataDir), (err, data) => {
+  fs.readdir(path.join(exports.dataDir), (err, files) => {
 
     if (err) {
-      throw err;
-    }
-
-
-    data = data.map((todo) => todo.split('.')[0]);
-    // data = data.map((todo) => { return {id: todo, text: todo}; });
-
-    var todoList = [];
-
-
-    for (var id of data) {
-
-
-      fs.readFile(path.join(exports.dataDir, `${id}.txt`), (err, data) => {
-        if (err) {
-          callback(err);
-
-        } else {
-
-          todoList.push({id: id, text: data.toString()});
-        }
-      });
+      throw ('error reading data folder');
 
     }
 
-    callback(null, data);
+    var data = files.map((todo) => {
+
+      var id = path.basename(todo, '.txt');
+
+      return readFileAsync(path.join(exports.dataDir, todo))
+        .then(fileData => {
+          return {
+            id,
+            text: fileData.toString()
+          };
+        });
+    });
+
+    Promise.all(data)
+      .then(items => callback(null, items));
   });
 
-  // var data = _.map(items, (text, id) => {
-  //   return { id, text };
-  // });
-  // console.log(data);
-  // callback(null, data);
 };
 
 exports.readOne = (id, callback) => {
